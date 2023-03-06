@@ -11,18 +11,18 @@ import serial.tools.list_ports
 #__________________________________________________________________________________________________________
 #------ Definitions --------------------------------------------------------------------------------------->
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
-#---Header
-FONT_TOP_BLOCK          = 'verdana 16 bold'
-FONT_SUB_TOP_BLOCK      = 'verdana 12 bold'
-COLOR_TOP_BG            = 'yellow'
-PAD_BLOCK_TOP           = (0,0)
+#---Header General
+HEADER_FONT_TITLE       = 'verdana 16 bold'
+HEADER_FONT_SUBTITLE    = 'verdana 12 bold'
+HEADER_COLOR_BG         = 'yellow'
+HEADER_PAD              = (0,0)
 
-#---Footer
-PAD_BLOCK_BOTTOM        = (0,0)
-COLOR_BOTTOM_BG         = 'black'
+#---Footer General
+FOOTER_PAD              = (0,0)
+FOOTER_COLOR_BG         = 'black'
 
-#---body
-COLOR_BODY_BG           = 'grey'
+#---Body General
+BODY_COLOR_BG           = 'grey'
 
 #---Start window
 SIZE_BLOCK_START        = (256,256)
@@ -43,24 +43,24 @@ def window_start(first_launch:bool=True):
     Defines and runs the port connection window. \n
     ::param:: first_launch should be False if this function is called from mid-program'''
     #---Top Block
-    block_top = [
+    block_header = [
         [
             sg.Column([
-                [sg.Text(TITLE_START, font=FONT_TOP_BLOCK, text_color='black', border_width=5, background_color=COLOR_TOP_BG, justification='c')],
-                [sg.Text(SUBTITLE_START, font=FONT_SUB_TOP_BLOCK, text_color='black', border_width=5, background_color=COLOR_TOP_BG, justification='c')]
-            ], element_justification='c', background_color=COLOR_TOP_BG, pad=(PAD_BLOCK_TOP), expand_x=True)
+                [sg.Text(TITLE_START, font=HEADER_FONT_TITLE, text_color='black', border_width=5, background_color=HEADER_COLOR_BG, justification='c')],
+                [sg.Text(SUBTITLE_START, font=HEADER_FONT_SUBTITLE, text_color='black', border_width=5, background_color=HEADER_COLOR_BG, justification='c')]
+            ], element_justification='c', background_color=HEADER_COLOR_BG, pad=(HEADER_PAD), expand_x=True)
         ],
     ]
 
     #---Bottom Block
-    block_bottom = [
+    block_footer = [
         [
             sg.Column([
                 #---Navigation buttons
                 [
                     sg.Button('Close', expand_x=True, button_color=COLOR_BUTTON_EXIT),
                 ],
-            ], element_justification='c', background_color=COLOR_BOTTOM_BG, pad=PAD_BLOCK_BOTTOM, expand_x=True)
+            ], element_justification='c', background_color=FOOTER_COLOR_BG, pad=FOOTER_PAD, expand_x=True)
         ],
     ]
 
@@ -86,13 +86,13 @@ def window_start(first_launch:bool=True):
 
     #---Assemble layout
     layout = [
-        [block_top],
-        [[sg.Column(block_body, background_color=COLOR_BODY_BG, pad=(0,0), element_justification='c', expand_x=True, expand_y=True)]],
-        [block_bottom]
+        [block_header],
+        [[sg.Column(block_body, background_color=BODY_COLOR_BG, pad=(0,0), element_justification='c', expand_x=True, expand_y=True)]],
+        [block_footer]
     ]
 
     #---Define window. Finalize it, so elements can be updated before first window read
-    window = sg.Window(TITLE_START, layout, grab_anywhere=True, element_padding=(0,0), keep_on_top=True, no_titlebar=True, finalize=True, background_color=COLOR_BODY_BG)
+    window = sg.Window(TITLE_START, layout, grab_anywhere=True, element_padding=(0,0), keep_on_top=True, no_titlebar=True, finalize=True, background_color=BODY_COLOR_BG)
 
 
     #---Refresh ports function (called at start and from refresh button)
@@ -160,37 +160,60 @@ def window_start(first_launch:bool=True):
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 def window_main(ser=None):
     #---Top Block
-    block_top = [
+    block_header = [
         [
             sg.Column([
-                [sg.Text(TITLE_START, font=FONT_TOP_BLOCK, text_color='black', border_width=5, background_color=COLOR_TOP_BG, justification='c')],
-                [sg.Text('Main Window', font=FONT_SUB_TOP_BLOCK, text_color='black', border_width=5, background_color=COLOR_TOP_BG, justification='c')],
+                [sg.Text(TITLE_START, font=HEADER_FONT_TITLE, text_color='black', border_width=5, background_color=HEADER_COLOR_BG, justification='c')],
+                [sg.Text('Main Window', font=HEADER_FONT_SUBTITLE, text_color='black', border_width=5, background_color=HEADER_COLOR_BG, justification='c')],
                 []
-            ], element_justification='c', background_color=COLOR_TOP_BG, pad=(PAD_BLOCK_TOP), expand_x=True)
+            ], element_justification='c', background_color=HEADER_COLOR_BG, pad=(HEADER_PAD), expand_x=True)
         ],
     ]
 
+
+    block_body = [
+        [
+            #---Left Column
+            sg.Column([
+                [sg.Text('Here goes left column elements')]
+            ], 
+            background_color='red', pad=(0,0), expand_x=True
+            ),
+    
+            #---Right Column
+            sg.Column([
+                [sg.Text('Here goes right column elements')]
+            ], 
+            background_color='blue', pad=(0,0), expand_x=True
+            ),
+        ]
+    ]
+
+
+
     #---Bottom Block
-    block_bottom = [
+    block_footer = [
         [
             sg.Column([
                 #---Navigation buttons
                 [
                     sg.Button('Reconnect', key='main/reconnect'),
+                    sg.Button('Settings', key='main/settings'),
                     sg.Button('Exit', expand_x=True, button_color=COLOR_BUTTON_EXIT),
                 ],
-            ], element_justification='c', background_color=COLOR_BOTTOM_BG, pad=PAD_BLOCK_BOTTOM, expand_x=True)
+            ], element_justification='c', background_color=FOOTER_COLOR_BG, pad=FOOTER_PAD, expand_x=True)
         ],
     ]
 
     #---Assemble layout
     layout = [
-        [block_top],
-        [block_bottom]
+        [block_header],
+        [block_body],
+        [block_footer]
     ]
     
     #---Define window. Finalize it, so elements can be updated before first window read
-    window = sg.Window(TITLE_START, layout, element_padding=(0,0), keep_on_top=True, no_titlebar=True, finalize=True, background_color=COLOR_BODY_BG)
+    window = sg.Window(TITLE_START, layout, element_padding=(0,0), keep_on_top=True, no_titlebar=True, finalize=True, background_color=BODY_COLOR_BG)
 
     #---Window Main Loop
     while True:
@@ -207,7 +230,7 @@ def window_main(ser=None):
 #------ Main loop ----------------------------------------------------------------------------------------->
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 def main():
-    window_start()
+    window_main()
 
 
 

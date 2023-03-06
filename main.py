@@ -75,7 +75,7 @@ def window_start(first_launch:bool=True):
         # Separator
         [sg.HorizontalSeparator()],
 
-        # Baud rate
+        # Baud rate (Fixed for now)
         [sg.Text('Select Baud Rate:', expand_x=True)],
         [sg.Combo(['115200'], default_value='115200', key='start/baudrate', expand_x=True, tooltip=' Select Baud Rate ')],
 
@@ -133,7 +133,7 @@ def window_start(first_launch:bool=True):
         if event == 'start/connect' and values['start/ports'] != ERROR_NO_PORT:
             try: 
                 # Try connecting to the selected port
-                ser = serial.Serial(port='COM1', baudrate=115200, timeout=1)
+                ser = serial.Serial(port=values['start/ports'], baudrate=values['start/baudrate'], timeout=1)
                 # Set proceed flag, meaning that the window break is not due to Exit
                 proceed = True
                 break

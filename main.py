@@ -7,6 +7,7 @@ import serial
 import serial.tools.list_ports
 
 
+
 #__________________________________________________________________________________________________________
 #------ Definitions --------------------------------------------------------------------------------------->
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
@@ -32,6 +33,8 @@ COLOR_BUTTON_REFRESH    = 'teal'
 COLOR_BUTTON_CONNECT    = 'dark green'
 COLOR_BUTTON_EXIT       = 'dark red'
 
+
+
 #__________________________________________________________________________________________________________
 #------ Startup Window ------------------------------------------------------------------------------------>
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
@@ -55,7 +58,7 @@ def window_start(first_launch:bool=True):
             sg.Column([
                 #---Navigation buttons
                 [
-                    sg.Button('Exit', expand_x=True, button_color=COLOR_BUTTON_EXIT),
+                    sg.Button('Close', expand_x=True, button_color=COLOR_BUTTON_EXIT),
                 ],
             ], element_justification='c', background_color=COLOR_BOTTOM_BG, pad=PAD_BLOCK_BOTTOM, expand_x=True)
         ],
@@ -89,7 +92,7 @@ def window_start(first_launch:bool=True):
     ]
 
     #---Define window. Finalize it, so elements can be updated before first window read
-    window = sg.Window(TITLE_START, layout, element_padding=(0,0), keep_on_top=True, no_titlebar=True, finalize=True, background_color=COLOR_BODY_BG)
+    window = sg.Window(TITLE_START, layout, grab_anywhere=True, element_padding=(0,0), keep_on_top=True, no_titlebar=True, finalize=True, background_color=COLOR_BODY_BG)
 
 
     #---Refresh ports function (called at start and from refresh button)
@@ -119,7 +122,7 @@ def window_start(first_launch:bool=True):
         event, values = window.read()
 
         #---Window close check
-        if event == 'Exit' or event == sg.WIN_CLOSED:
+        if event == 'Exit' or event == 'Close' or event == sg.WIN_CLOSED:
             break
 
         #---Refresh click event
@@ -147,26 +150,43 @@ def window_start(first_launch:bool=True):
     if proceed and first_launch: 
         # Open the main window, passing in the serial connection
         window_main(ser)
+    # If the connect window is called from the main window, just return the serial connection
+    elif proceed: return ser
 
 
 
 #__________________________________________________________________________________________________________
 #------ Main Window --------------------------------------------------------------------------------------->
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
-def window_main(ser):
+def window_main(ser=None):
     #---Top Block
     block_top = [
         [
             sg.Column([
                 [sg.Text(TITLE_START, font=FONT_TOP_BLOCK, text_color='black', border_width=5, background_color=COLOR_TOP_BG, justification='c')],
-                [sg.Text('Main Window', font=FONT_SUB_TOP_BLOCK, text_color='black', border_width=5, background_color=COLOR_TOP_BG, justification='c')]
+                [sg.Text('Main Window', font=FONT_SUB_TOP_BLOCK, text_color='black', border_width=5, background_color=COLOR_TOP_BG, justification='c')],
+                []
             ], element_justification='c', background_color=COLOR_TOP_BG, pad=(PAD_BLOCK_TOP), expand_x=True)
+        ],
+    ]
+
+    #---Bottom Block
+    block_bottom = [
+        [
+            sg.Column([
+                #---Navigation buttons
+                [
+                    sg.Button('Reconnect', key='main/reconnect'),
+                    sg.Button('Exit', expand_x=True, button_color=COLOR_BUTTON_EXIT),
+                ],
+            ], element_justification='c', background_color=COLOR_BOTTOM_BG, pad=PAD_BLOCK_BOTTOM, expand_x=True)
         ],
     ]
 
     #---Assemble layout
     layout = [
         [block_top],
+        [block_bottom]
     ]
     
     #---Define window. Finalize it, so elements can be updated before first window read
@@ -181,7 +201,8 @@ def window_main(ser):
         if event == 'Exit' or event == sg.WIN_CLOSED:
             break
 
-
+        if event == 'main/reconnect':
+            ser = window_start(first_launch=False)
 #__________________________________________________________________________________________________________
 #------ Main loop ----------------------------------------------------------------------------------------->
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨

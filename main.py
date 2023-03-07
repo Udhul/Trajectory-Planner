@@ -5,6 +5,67 @@ import PySimpleGUI as sg
 import json
 import serial
 import serial.tools.list_ports
+from gcodeparser import GcodeParser
+
+# open gcode file and store contents as variable
+with open('./test/test.nc', 'r') as f:
+    gcode_parsed = GcodeParser(f.read())
+
+
+
+#__________________________________________________________________________________________________________
+#------ G-Code Line Executor ------------------------------------------------------------------------------>
+#¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
+def gcode_executor(gcode_parsed, line_no):
+    # print(gcode_parsed.gcode) # Contains the raw loaded gcode
+    # print(gcode_parsed.lines[line_no])  # Print parsed gcode lines
+    command_type    = gcode_parsed.lines[line_no].command[0]
+    command_number  = gcode_parsed.lines[line_no].command[1]
+    params          = gcode_parsed.lines[line_no].params
+    print('type:  ', command_type)
+    print('number:', command_number)
+    print('params:', params)
+    print('-----------')
+
+    # Machine Op Commands
+    if command_type == 'M':
+        # Program stop
+        if command_number == 0:
+            ... 
+        # Spindle On CW
+        if command_number == 3:
+            ... # 
+        # Spindle On CCW
+        if command_number == 4:
+            ... # 
+        # Spindle Off
+        if command_number == 5:
+            ... # 
+
+    # G type Commands
+    if command_type == 'G':
+        # Rapid Movement
+        if command_number == 0:
+            ...
+        # Cut Movement
+        if command_number == 1:
+            ...
+        # Move to Position 0
+        if command_number == 21:
+            ...
+        # Swtich to Absolute Coordinates
+        if command_number == 90:
+            ...
+        # Swtch to Incremental Coordinates
+        if command_number == 91:
+            ...
+
+    # Tool change commands. Placeholder. Currently unsupported
+    if command_type == 'T':
+        ... 
+
+for line in range(50):
+    gcode_executor(gcode_parsed, line)
 
 
 

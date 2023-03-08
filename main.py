@@ -46,29 +46,30 @@ class gcode:
         self.parsed = self.parse(gcode_path)
         self.hash = self.hash(self.parsed.gcode)
 
-        def parse(self, gcode_path:str):
-            '''Parse the loaded gcode using the GcodeParser library. 
-            This will split the gcode into liones, commands and parameters'''
-            # Try parsing the gcode
-            try:
-                with open(gcode_path, 'r') as f:
-                    # Raw string form of the file
-                    gcode_loaded = f.read()
-                    # Parsed object format
-                    gcode_parsed = GcodeParser(gcode_loaded)
-                    return gcode_parsed
-            # If the gcode could not be parsed, print the error (maybe it is a wrong or unsupported file)
-            except Exception as e:
-                print(f'The chosen file could not be parsed as a G-Code.\nError: {e}')
-                # self.parsed becomes 'None' until gcode is successfully loaded and parsed
-                return None
+    def parse(self, gcode_path:str):
+        '''Parse the loaded gcode using the GcodeParser library. 
+        This will split the gcode into liones, commands and parameters'''
+        # Try parsing the gcode
+        try:
+            with open(gcode_path, 'r') as f:
+                # Raw string form of the file
+                gcode_loaded = f.read()
+                # Parsed object format
+                gcode_parsed = GcodeParser(gcode_loaded)
+                return gcode_parsed
+        # If the gcode could not be parsed, print the error (maybe it is a wrong or unsupported file)
+        except Exception as e:
+            print(f'The chosen file could not be parsed as a G-Code.\nError: {e}')
+            # self.parsed becomes 'None' until gcode is successfully loaded and parsed
+            return None
 
     def hash(self, gcode:str):
         '''Get the hashed value of the loaded gcode. 
         Used to Keep object settings if the same code is loaded later'''
-        gcode_hash = hashlib.sha256()
-        gcode_hash.update(gcode)
-        print(gcode_hash.digest())  # test the output
+        gcode_utf = gcode.encode('utf-8')
+        sha1hash = hashlib.sha1()
+        sha1hash.update(gcode_utf)
+        gcode_hash = sha1hash.hexdigest()
         return gcode_hash
 
     def run(self, line_no:int):

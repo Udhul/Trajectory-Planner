@@ -6,7 +6,7 @@ import json
 import serial
 import serial.tools.list_ports
 from gcodeparser import GcodeParser
-
+import hashlib
 
 
 #__________________________________________________________________________________________________________
@@ -39,53 +39,88 @@ COLOR_BUTTON_EXIT       = 'dark red'
 #__________________________________________________________________________________________________________
 #------ G-Code Line Executor ------------------------------------------------------------------------------>
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
-def gcode_executor(gcode_parsed, line_no):
-    # print(gcode_parsed.gcode) # Contains the raw loaded gcode
-    # print(gcode_parsed.lines[line_no])  # Print parsed gcode lines
-    command_type    = gcode_parsed.lines[line_no].command[0]
-    command_number  = gcode_parsed.lines[line_no].command[1]
-    params          = gcode_parsed.lines[line_no].params
-    print('type:  ', command_type)
-    print('number:', command_number)
-    print('params:', params)
-    print('-----------')
+class gcode:
+    '''Create objects containing gcode, the parsed version, execution methods, and keep track of progress and gcode position'''
+    def __init__(self, gcode_path:str) -> None:
+        self.path = gcode_path
+        self.parsed = self.parse(gcode_path)
+        self.hash = self.hash(self.parsed.gcode)
 
-    # Machine Op Commands
-    if command_type == 'M':
-        # Program stop
-        if command_number == 0:
+        def parse(self, gcode_path:str):
+            '''Parse the loaded gcode using the GcodeParser library. 
+            This will split the gcode into liones, commands and parameters'''
+            # Try parsing the gcode
+            try:
+                with open(gcode_path, 'r') as f:
+                    # Raw string form of the file
+                    gcode_loaded = f.read()
+                    # Parsed object format
+                    gcode_parsed = GcodeParser(gcode_loaded)
+                    return gcode_parsed
+            # If the gcode could not be parsed, print the error (maybe it is a wrong or unsupported file)
+            except Exception as e:
+                print(f'The chosen file could not be parsed as a G-Code.\nError: {e}')
+                # self.parsed becomes 'None' until gcode is successfully loaded and parsed
+                return None
+
+    def hash(self, gcode:str):
+        '''Get the hashed value of the loaded gcode. 
+        Used to Keep object settings if the same code is loaded later'''
+        gcode_hash = hashlib.sha256()
+        gcode_hash.update(gcode)
+        print(gcode_hash.digest())  # test the output
+        return gcode_hash
+
+    def run(self, line_no:int):
+        self.execute_line(self.parsed, line_no)
+
+    def execute_line(self, line_no:int):
+        # print(gcode_parsed.gcode) # Contains the raw loaded gcode
+        # print(gcode_parsed.lines[line_no])  # Print parsed gcode lines
+        command_type    = self.parsed.lines[line_no].command[0]
+        command_number  = self.parsed.lines[line_no].command[1]
+        params          = self.parsed.lines[line_no].params
+        print('type:  ', command_type)
+        print('number:', command_number)
+        print('params:', params)
+        print('-----------')
+
+        # Machine Op Commands
+        if command_type == 'M':
+            # Program stop
+            if command_number == 0:
+                ... 
+            # Spindle On CW
+            if command_number == 3:
+                ... # 
+            # Spindle On CCW
+            if command_number == 4:
+                ... # 
+            # Spindle Off
+            if command_number == 5:
+                ... # 
+
+        # G type Commands
+        if command_type == 'G':
+            # Rapid Movement
+            if command_number == 0:
+                ...
+            # Cut Movement
+            if command_number == 1:
+                ...
+            # Move to Position 0
+            if command_number == 21:
+                ...
+            # Swtich to Absolute Coordinates
+            if command_number == 90:
+                ...
+            # Swtch to Incremental Coordinates
+            if command_number == 91:
+                ...
+
+        # Tool change commands. Placeholder. Currently unsupported
+        if command_type == 'T':
             ... 
-        # Spindle On CW
-        if command_number == 3:
-            ... # 
-        # Spindle On CCW
-        if command_number == 4:
-            ... # 
-        # Spindle Off
-        if command_number == 5:
-            ... # 
-
-    # G type Commands
-    if command_type == 'G':
-        # Rapid Movement
-        if command_number == 0:
-            ...
-        # Cut Movement
-        if command_number == 1:
-            ...
-        # Move to Position 0
-        if command_number == 21:
-            ...
-        # Swtich to Absolute Coordinates
-        if command_number == 90:
-            ...
-        # Swtch to Incremental Coordinates
-        if command_number == 91:
-            ...
-
-    # Tool change commands. Placeholder. Currently unsupported
-    if command_type == 'T':
-        ... 
 
 
 
@@ -118,7 +153,7 @@ def window_start(first_launch:bool=True):
         ],
     ]
 
-
+    #---Body Block
     block_body = [
         # Port selection
         [sg.Text('Select Serial Port:', expand_x=True)],
@@ -224,7 +259,7 @@ def window_main(ser=None):
         ],
     ]
 
-
+    #---Body Block
     block_body = [
         [
             #---Left Column
@@ -242,8 +277,6 @@ def window_main(ser=None):
             ),
         ]
     ]
-
-
 
     #---Bottom Block
     block_footer = [
@@ -288,20 +321,11 @@ def window_main(ser=None):
             gcode_path = sg.popup_get_file(message='Load G-code', title='Load G-code', default_extension='.nc', keep_on_top=True)
             # sg.FileBrowse(button_text='Select G-Code', target='load_gcode_input')
 
-            # Try parsing the gcode
-            try:
-                with open(gcode_path, 'r') as f:
-                    # Raw string form of the file
-                    gcode_loaded = f.read()
-                    # Parsed object format
-                    gcode_parsed = GcodeParser(gcode_loaded)
-            # If the gcode could not be parsed, print the error (maybe it is a wrong or unsupported file)
-            except Exception as e:
-                print(f'The chosen file could not be parsed as a G-Code. Error: {e}')
+            gcode_loaded = gcode(gcode_path)
 
             # Test run through the first 50 lines
             for line in range(50):
-                gcode_executor(gcode_parsed, line)
+                gcode_loaded.run(line)
 
 
 

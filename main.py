@@ -37,18 +37,19 @@ COLOR_BUTTON_EXIT       = 'dark red'
 
 
 #__________________________________________________________________________________________________________
-#------ G-Code Line Executor ------------------------------------------------------------------------------>
+#------ G-Code Executor ----------------------------------------------------------------------------------->
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 class gcode:
     '''Create objects containing gcode, the parsed version, execution methods, and keep track of progress and gcode position'''
     def __init__(self, gcode_path:str) -> None:
-        self.path = gcode_path
-        self.parsed = self.parse(gcode_path)
-        self.hash = self.hash(self.parsed.gcode)
+        self.path           = gcode_path
+        self.parsed         = self.parse(gcode_path)
+        self.hashed         = self.hash(self.parsed.gcode)
+        self.current_line   = 0
 
     def parse(self, gcode_path:str):
         '''Parse the loaded gcode using the GcodeParser library. 
-        This will split the gcode into liones, commands and parameters'''
+        This will split the gcode into lines, commands and parameters'''
         # Try parsing the gcode
         try:
             with open(gcode_path, 'r') as f:
@@ -73,7 +74,7 @@ class gcode:
         return gcode_hash
 
     def run(self, line_no:int):
-        self.execute_line(self.parsed, line_no)
+        self.execute_line(line_no)
 
     def execute_line(self, line_no:int):
         # print(gcode_parsed.gcode) # Contains the raw loaded gcode

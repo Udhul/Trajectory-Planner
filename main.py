@@ -29,7 +29,7 @@ BODY_COLOR_BG           = 'grey'
 SIZE_BLOCK_START        = (256,256)
 TITLE_START             = 'CNC Trajectory Planner'
 SUBTITLE_START          = 'Connect to Controller'
-ERROR_NO_PORT           = 'No port found...'
+ERROR_NO_PORT           = 'No port'
 COLOR_BUTTON_REFRESH    = 'teal'
 COLOR_BUTTON_CONNECT    = 'dark green'
 COLOR_BUTTON_EXIT       = 'dark red'
@@ -129,10 +129,10 @@ class gcode:
 #__________________________________________________________________________________________________________
 #------ Startup Window ------------------------------------------------------------------------------------>
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
-def window_start(first_launch:bool=True):
+def window_start(flag_first_launch:bool=True):
     '''Startup window to connect to the serial port.\n
     Defines and runs the port connection window. \n
-    ::param:: first_launch should be False if this function is called from mid-program'''
+    ::param:: flag_first_launch should be False if this function is called from mid-program'''
     #---Top Block
     block_header = [
         [
@@ -194,17 +194,17 @@ def window_start(first_launch:bool=True):
         if ports == []: 
             # Set the list index 0 to the error code
             ports = [ERROR_NO_PORT]
-            # Disable connect button
-            window['start/connect'].update(disabled=True)
-        # If ports were found, enable the connect button
-        else: window['start/connect'].update(disabled=False)
+            # Change the Connect button text to allow connection in offline mode
+            window['start/connect'].update(text='Offline mode')
+        # If ports were found, change the connect button text to connect
+        else: window['start/connect'].update(text='Connect')
         # Update the combobox with the list of ports. Set the select value to list index 0
         window['start/ports'].update(values=ports, value=ports[0])
 
 
     #---Reset event flags and window values
     refresh_ports()
-    proceed = False
+    flag_proceed = False
     
 
     #---Window Main Loop
@@ -221,29 +221,36 @@ def window_start(first_launch:bool=True):
             refresh_ports
 
         #---Connect click event
-        if event == 'start/connect' and values['start/ports'] != ERROR_NO_PORT:
-            try: 
-                # Try connecting to the selected port
-                ser = serial.Serial(port=values['start/ports'], baudrate=values['start/baudrate'], timeout=1)
-                # Set proceed flag, meaning that the window break is not due to Exit
-                proceed = True
-                break
-            # In case the port launch fails:
-            except Exception as e: 
-                # Show popup with error message 
-                # (Normally this will not be shown due to connect button being disabled when there's no port)
-                sg.popup(f'Could not connect to the port\nError: {e}', keep_on_top=True, modal=True)
+        if event == 'start/connect':
+            # Set flag_proceed , meaning that the window break is not due to Exit
+            flag_proceed = True
+            if values['start/ports'] != ERROR_NO_PORT:
+                try: 
+                    # Try connecting to the selected port
+                    ser = serial.Serial(port=values['start/ports'], baudrate=values['start/baudrate'], timeout=1)
+                # In case the port launch fails:
+                except Exception as e: 
+                    # Set ser to None, so we don't request an undeclared variable, or any old connection
+                    ser = None
+                    # Show popup with error message
+                    sg.popup(f'Could not connect to the port\nError: {e}', keep_on_top=True, modal=True)
+            else: ser = None
+            break
 
     # Close this connection window
     window.close()
-    
-    # If proceed (expect main window to launch) and first_launch (main window not already running): 
-    if proceed and first_launch: 
+
+    # If flag_proceed (expect main window to launch) and flag_first_launch (main window not already running): 
+    if flag_proceed and flag_first_launch: 
         # Open the main window, passing in the serial connection
         window_main(ser)
     # If the connect window is called from the main window, just return the serial connection
-    elif proceed: return ser
+    elif flag_proceed: return ser
 
+
+    # Lav om, så flag connected ikke bruges, men i stedet for læser ports == [] eller ser, 
+    # for at se om der er en forbindelse, eller om der skal forbindes i offline mode. 
+    # Skelne mellem exit event og connect event.
 
 
 #__________________________________________________________________________________________________________
@@ -316,7 +323,7 @@ def window_main(ser=None):
             break
 
         if event == 'main/reconnect':
-            ser = window_start(first_launch=False)
+            ser = window_start(flag_first_launch=False)
 
         if event == 'main/load_gcode_button':
             # Get the gcode path from the file browse popup
@@ -335,7 +342,7 @@ def window_main(ser=None):
 #------ Main loop ----------------------------------------------------------------------------------------->
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨
 def main():
-    window_main()
+    window_start()
 
 
 
